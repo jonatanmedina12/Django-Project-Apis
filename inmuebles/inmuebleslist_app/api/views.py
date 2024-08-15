@@ -4,15 +4,16 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
 
+from rest_framework.views import APIView
 
-@api_view(['GET', 'POST'])
-def inmueble_list(request):
-    if request.method == 'GET':
+
+class InmueblesListAv(APIView):
+    def get(self, request):
         inmuebles = Inmueble.objects.all()
         serializer = InmueblesSerializer(inmuebles, many=True)
         return Response(serializer.data)
 
-    elif request.method == 'POST':
+    def post(self, request):
         de_serializer = InmueblesSerializer(data=request.data)
         if de_serializer.is_valid():
             de_serializer.save()
@@ -20,33 +21,45 @@ def inmueble_list(request):
         return Response(de_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def inmueble_detalle(request, pk):
-    try:
-        if request.method == 'GET':
+class InmueblesDetalleAv(APIView):
+    def get(self, request, pk):
+        try:
             inmueble = Inmueble.objects.get(pk=pk)
-
             serializer = InmueblesSerializer(inmueble)
             return Response(serializer.data)
-        if request.method == 'PUT':
-            inmueble = Inmueble.objects.get(pk=pk)
+        except Inmueble.DoesNotExist:
+            return Response(
+                {"error": "Inmueble no encontrado"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
-            de_serializer = InmueblesSerializer(inmueble, data=request.data)
-            if de_serializer.is_valid():
-                de_serializer.save()
-                return Response(de_serializer.data, status=status.HTTP_201_CREATED)
-            return Response(de_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        if request.method == 'DELETE':
+    def delete(self, request, pk):
+        try:
+            inmuebles = Inmueble.objects.get(pk=pk)
 
-            inmueble = Inmueble.objects.get(pk=pk)
+        except Inmueble.DoesNotExist:
+            return Response(
+                {"error": "Inmueble no encontrado"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        inmuebles.delete()
+        return Response('correcto', status=status.HTTP_200_OK)
 
-            inmueble.delete()
-            data={
-                "resultado":True
-            }
+    def put(self, request, pk):
+        try:
+            inmuebles = Inmueble.objects.get(pk=pk)
 
-            return Response(data, status=status.HTTP_201_CREATED)
-
-
-    except Inmueble.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        except Inmueble.DoesNotExist:
+            return Response(
+                {"error": "Inmueble no encontrado"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = InmueblesSerializer(inmuebles, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response('correcto',status=status.HTTP_200_OK)
+        else:
+            return Response(
+                {"error": "Inmueble no encontrado"},
+                status=status.HTTP_404_NOT_FOUND
+            )
