@@ -1,11 +1,62 @@
-from ..models import Inmueble
-from .serializers import InmueblesSerializer
+
+from ..models import Inmueble, Empresa
+from .serializers import InmueblesSerializer, EmpresasSerializer
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.decorators import api_view
-
 from rest_framework.views import APIView
 
+
+class EmpresasAv(APIView):
+    @staticmethod
+    def get(request):
+        empresas = Empresa.objects.all()
+        serializer = EmpresasSerializer(empresas, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @staticmethod
+    def post(request):
+        serializer = EmpresasSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EmpresasDetalleAv(APIView):
+    @staticmethod
+    def get(request, pk):
+        try:
+            empresas = Empresa.objects.get(pk=pk)
+        except Empresa.DoesNotExist:
+            return Response({'error': 'Empresa no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = EmpresasSerializer(empresas, context={'request': request})
+        return Response(serializer.data)
+
+    @staticmethod
+    def update(request, pk):
+        try:
+            empresas = Empresa.objects.get(pk=pk)
+        except Empresa.DoesNotExist:
+            return Response({'error': 'Empresa no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = EmpresasSerializer(empresas, data=request.data, context={'request': request})
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @staticmethod
+    def delete(request, pk):
+        try:
+            empresas = Empresa.objects.get(pk=pk)
+        except Empresa.DoesNotExist:
+            return Response({'error': 'Empresa no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+
+        empresas.delete()
+        return Response(status=status.HTTP_200_OK)
 
 class InmueblesListAv(APIView):
     def get(self, request):
@@ -57,7 +108,7 @@ class InmueblesDetalleAv(APIView):
         serializer = InmueblesSerializer(inmuebles, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response('correcto',status=status.HTTP_200_OK)
+            return Response('correcto', status=status.HTTP_200_OK)
         else:
             return Response(
                 {"error": "Inmueble no encontrado"},
