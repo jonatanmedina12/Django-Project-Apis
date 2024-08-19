@@ -1,10 +1,11 @@
 from django.urls import path
 
-from .views import InmueblesListAv
-
-from .views import InmueblesDetalleAv
+from .views import InmueblesListAv, InmueblesDetalleAv, EmpresasAv, EmpresasDetalleAv
 
 urlpatterns = [
-    path('list', InmueblesListAv.as_view(), name='inmuebles_list'),
-    path('<int:pk>', InmueblesDetalleAv.as_view(), name='inmueble_detalle')
+    path('inmuebles/', InmueblesListAv.as_view(), name='inmueble-list'),
+    path('inmuebles/<int:pk>/', InmueblesDetalleAv.as_view(), name='inmueble-detalle'),
+    path('empresas/', EmpresasAv.as_view(), name='empresa-list'),
+    path('empresas/<int:pk>/', EmpresasDetalleAv.as_view(), name='empresa-detalle'),
+
 ]
